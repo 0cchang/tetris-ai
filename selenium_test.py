@@ -13,13 +13,11 @@ url = "https://jstris.jezevec10.com/"
  
 # Opening the website
 driver.get(url)
-sleep(10)
-driver.save_screenshot("image5.png")
-sleep(10)
-driver.save_screenshot("image6.png")
- 
-# Loading the image
-image = Image.open("image6.png")
- 
-# Showing the image
-image.show()
+sleep(5)
+driver.save_screenshot("image.png")
+
+box = (439,202,1227,1180) #relative coords
+image = Image.open("image.png")
+image2 = image.crop(box)
+
+image2.save("cropped_image.png")
