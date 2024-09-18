@@ -1,4 +1,6 @@
 selenium
 Pillow
+pytorch
+numpy
 cv2
 tetris-gymnasium
