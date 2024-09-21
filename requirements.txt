@@ -1,0 +1,6 @@
+selenium
+Pillow
+torch
+numpy
+opencv-python
+tetris-gymnasium

@@ -31,7 +31,7 @@ for i in range(20, 450, 45):
         r, g, b = pixels[i, j]
         greyscale = 0.299 * r + 0.587 * g + 0.114 * b
         
-        vector.append()
+        vector.append(greyscale)
 
 
     print(vector)
