@@ -1,6 +1,6 @@
 selenium
 Pillow
-pytorch
+torch
 numpy
-cv2
+opencv-python
 tetris-gymnasium
