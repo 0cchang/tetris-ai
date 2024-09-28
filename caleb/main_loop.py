@@ -3,7 +3,7 @@ import numpy as np
 import cv2
 from tetris_gymnasium.envs.tetris import Tetris
 from agent import DQNAgent
-from ethan.training_model import DQN
+from training_model import DQN
 import torch.optim as optim
 
 # Create an optimizer for the DQN model
@@ -13,10 +13,6 @@ import torch.optim as optim
 # x change = -4 (move left) to 5 (move right)
 # rotation = 0 (no rotation), 1, 2, 3 (CCW rotations) or negative values (CW rotations)
 
-def choose_action(observation):
-    # Dummy action choice: random action from predefined vectors
-    action = np.random.choice([0, 1, 2, 3, 4, 5])  # example action: moving or rotating
-    return action
 
 def train(env, num_episodes=1000):
     model = DQN()
@@ -24,7 +20,7 @@ def train(env, num_episodes=1000):
     gamma = 0.99  # Discount factor
     batch_size = 32  # Batch size for training
     agent = DQNAgent(model, optimizer, gamma, batch_size, memory_size=10000)
-    
+
     for episode in range(num_episodes):
         observation, info = env.reset(seed=42)
         terminated = False
@@ -33,7 +29,7 @@ def train(env, num_episodes=1000):
         
         while not terminated and not truncated:
             # Choose an action based on the current observation
-            action = choose_action(observation)
+            action = agent.choose_action(observation)
 
             # Execute the action in the environment
             observation, reward, terminated, truncated, info = env.step(action)
