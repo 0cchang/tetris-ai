@@ -18,17 +18,18 @@ class DQNAgent:
         self.epsilon_end = epsilon_end
 
     def remember(self, transition):
+        """ Store a transition in memory. """
         self.memory.append(transition)
 
     def choose_action(self, observation):
-        # Epsilon-greedy action selection
-        u = np.random.rand()  # Generates a random float in [0, 1)
-        if u < self.epsilon:
-            action = np.random.choice([0, 1, 2, 3, 4, 5])  # Random action for exploration
+        """ Epsilon-greedy action selection. """
+        if np.random.rand() < self.epsilon:
+            action = np.random.choice([0, 1, 2, 3, 4, 5, 6, 7])  # Random action for exploration
         else:
             # Choose the best action based on Q-values for the given observation
             with torch.no_grad():
-                q_values = self.model(torch.tensor(observation, dtype=torch.float32).unsqueeze(0))
+                observation_tensor = torch.tensor(observation, dtype=torch.float32).unsqueeze(0)
+                q_values = self.model(observation_tensor)
                 action = torch.argmax(q_values).item()  # Best action based on Q-values
 
         # Decay epsilon after choosing an action
@@ -44,27 +45,33 @@ class DQNAgent:
         batch = random.sample(self.memory, self.batch_size)
         states, actions, rewards, next_states, dones = zip(*batch)
 
-        states = torch.tensor(states, dtype=torch.float32)
-        actions = torch.tensor(actions, dtype=torch.long)
+        # Convert lists of states to tensors
+        states = torch.stack([torch.tensor(state, dtype=torch.float32) for state in states])
+        actions = torch.tensor(actions, dtype=torch.long).unsqueeze(1)  # Unsqueeze actions to have shape (batch_size, 1)
         rewards = torch.tensor(rewards, dtype=torch.float32)
-        next_states = torch.tensor(next_states, dtype=torch.float32)
+        next_states = torch.stack([torch.tensor(next_state, dtype=torch.float32) for next_state in next_states])
         dones = torch.tensor(dones, dtype=torch.float32)
 
         # Compute Q-values for current states
         q_values = self.model(states)
-        q_values = q_values.gather(1, actions.unsqueeze(1)).squeeze(1)
+
+        # Use gather to get the Q-values for the actions taken
+        q_values = q_values.gather(1, actions)  # Now actions has the shape (batch_size, 1)
 
         # Compute target Q-values for next states
         next_q_values = self.model(next_states).max(1)[0]
         target_q_values = rewards + (self.gamma * next_q_values * (1 - dones))
 
         # Compute the loss
-        loss = F.mse_loss(q_values, target_q_values)
+        loss = F.mse_loss(q_values.squeeze(1), target_q_values)  # Squeeze to match dimensions for loss
 
         # Backpropagation
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
+    def reset_epsilon(self):
+        """ Reset epsilon to its initial value. """
+        self.epsilon = self.epsilon_init
 
 # Usage example
 # Assuming you have a model and optimizer defined
