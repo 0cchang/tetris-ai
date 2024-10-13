@@ -1,16 +1,23 @@
 from tetris_gymnasium.envs import Tetris
 import gymnasium as gym
-from nes_py.wrappers import JoypadSpace
 import numpy as np
 import torch
+import cv2
 
-env = gym.make("tetris_gymnasium/Tetris")
+env = gym.make("tetris_gymnasium/Tetris", render_mode = "human")
 
 observation, info = env.reset()
 board = observation['board']
-print(type(board))
 
-print(type(torch.as_tensor(board)))
+action = env.action_space.sample()  # You'll need a proper policy here
+
+env.step(action)
+
+env.render()
+#cv2.waitKey(10000)
+cv2.getWindowProperty(env.unwrapped.window_name, cv2.WND_PROP_VISIBLE)
+cv2.waitKey(1000)
+
 
 '''
 print("Start State1: \n", str(observation['board'])[1:-1])

@@ -6,7 +6,6 @@ import numpy
 
 from tetris_gymnasium.envs import Tetris
 import gymnasium as gym
-from nes_py.wrappers import JoypadSpace
 
 from training_model import *
 from replay_buffer import *
@@ -34,6 +33,7 @@ rb = ReplayBuffer(BUFFER_CAPACITY)
 
 # Make first observation about game state
 init_obs, _ = env.reset()
+
 
 # Loop
 for i in range(10):
