@@ -22,7 +22,7 @@ def train(env, num_episodes=1000):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Create DQN model and move to GPU if available
-    model = DQN(678, 8).to(device)  # Adjust input/output sizes as needed
+    model = DQN(678, 8).to(device)  # Adjust input/output sizes as needed // inp = 678, out = 8
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     gamma = 0.99
     batch_size = 32
@@ -30,37 +30,42 @@ def train(env, num_episodes=1000):
     epsilon_decay = 0.995
     epsilon_min = 0.01
 
-    agent = DQNAgent(model, optimizer, gamma, batch_size, memory_size=10000)
+    agent = DQNAgent(model, optimizer, gamma, batch_size, memory_size=10000, epsilon_init=epsilon)
 
     for episode in range(num_episodes):
         observation, info = env.reset(seed=42)
-        observation = process_observation_gym(observation)  # Process the initial observation
+        observation = process_observation_gym(observation)  # Initial observation
         terminated = False
         truncated = False
         total_reward = 0
         
         while not terminated and not truncated:
-            # Convert observation to a tensor and move to GPU
+            # Convert observation to a tensor
             observation_tensor = torch.tensor(observation, dtype=torch.float32).unsqueeze(0).to(device)
 
             # Choose an action based on the current observation
             action = agent.choose_action(observation_tensor)
-
+            
             # Execute the action in the environment
             next_observation, reward, terminated, truncated, info = env.step(action)
 
             # Process the next observation
             next_observation = process_observation_gym(next_observation)
-
-            # Move data to GPU for storing in memory
             next_observation_tensor = torch.tensor(next_observation, dtype=torch.float32).unsqueeze(0).to(device)
-            reward_tensor = torch.tensor([reward], dtype=torch.float32).to(device)
+
+            # Convert reward to scalar
+            reward_scalar = float(reward)  
             
             # Store the transition (s, a, r, s', done)
-            agent.remember((observation_tensor, action, reward_tensor, next_observation_tensor, terminated))
+            agent.remember((observation_tensor, action, reward_scalar, next_observation_tensor, terminated))
 
-            # Train the agent
-            agent.train()
+            # Calculate target
+            with torch.no_grad():
+                next_q_values = agent.model(next_observation_tensor)  # Get Q-values for the next state
+                target = reward_scalar + (1.0 - terminated) * gamma * torch.max(next_q_values).item()  # Update target based on Bellman equation
+            
+            # Train the agent using the current observation and calculated target
+            agent.train(observation_tensor, target)
 
             # Update the current observation
             observation = next_observation
@@ -70,12 +75,7 @@ def train(env, num_episodes=1000):
             # Render the environment
             env.render()
             key = cv2.waitKey(1)
-
-        # Epsilon decay after each episode
-        epsilon = max(epsilon_min, epsilon_decay * epsilon)
-
-        print(f"Episode {episode + 1}: Total Reward = {total_reward}")
-    
+            
     print("Training Complete!")
 
 if __name__ == "__main__":

@@ -4,3 +4,5 @@ torch
 numpy
 opencv-python
 tetris-gymnasium
+matplotlib
+IPythons

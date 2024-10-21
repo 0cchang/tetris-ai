@@ -26,5 +26,5 @@ print(action_space)
 
 observation, info = env.reset(seed=42)
 
-print(process_observation_gym(observation))
+print(len(process_observation_gym(observation)))
 env.close()
