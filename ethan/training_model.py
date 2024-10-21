@@ -3,13 +3,8 @@ import torch.nn as nn
 import torch.optim as optim
 import numpy
 
-BOARD_SIZE = 20*10
-CURR_PIECE_SIZE = 2*4
-NEXT_PIECE_SIZE = 2*4
-
-
 # DQN class responsible for forward propogation
-class DQN(nn.modules):
+class DQN(nn.Module):
     
     def __init__(self, input_dim, output_dim):
         super(DQN, self).__init__()
