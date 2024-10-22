@@ -10,6 +10,10 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
+import time
+
+
+
 
 from itertools import count
 
@@ -71,6 +75,8 @@ EPS_DECAY = 1000
 TAU = 0.005
 LR = 1e-4
 
+PATH = "DQN-seed200-16000CumEps.pth"
+
 
 
 
@@ -84,23 +90,25 @@ def flatten(state):
     return np.concatenate([board_flat, tetromino_flat, holder_flat, queue_flat])
 
 
-episode_durations = []
-
+#episode_durations = []
+scores = []
 
 def plot_durations(show_result=False):
     plt.figure(1)
-    durations_t = torch.tensor(episode_durations, dtype=torch.float)
+    #durations_t = torch.tensor(episode_durations, dtype=torch.float)
+    scores_t = torch.tensor(scores, dtype=torch.float)
     if show_result:
         plt.title('Result')
     else:
         plt.clf()
         plt.title('Training...')
     plt.xlabel('Episode')
-    plt.ylabel('Duration')
-    plt.plot(durations_t.numpy())
+    plt.ylabel('score')
+
+    plt.plot(scores_t.numpy())
     # Take 100 episode averages and plot them too
-    if len(durations_t) >= 100:
-        means = durations_t.unfold(0, 100, 1).mean(1).view(-1)
+    if len(scores_t) >= 100:
+        means = scores_t.unfold(0, 100, 1).mean(1).view(-1)
         means = torch.cat((torch.zeros(99), means))
         plt.plot(means.numpy())
 
@@ -119,16 +127,16 @@ def select_action(state):
     eps_threshold = EPS_END + (EPS_START - EPS_END) * \
         math.exp(-1. * steps_done / EPS_DECAY)
     steps_done += 1
-    print(steps_done)
+    #print(steps_done)
     if sample > eps_threshold:
-        print("not random")
+        #print("not random")
         with torch.no_grad():
             # t.max(1) will return the largest column value of each row.
             # second column on max result is index of where max element was
             # found, so we pick action with the larger expected reward.
             return policy_net(state).max(1).indices.view(1, 1)
     else:
-        print("random")
+        #print("random")
         return torch.tensor([[env.action_space.sample()]], device=device, dtype=torch.long)
 
 
@@ -184,41 +192,49 @@ def optimize_model():
 
 
 if __name__ == "__main__":
-    env = gym.make("tetris_gymnasium/Tetris", render_mode="human")
+    print("device ", device)
+    env = gym.make("tetris_gymnasium/Tetris")
     
     # Get number of actions from gym action space
     n_actions = env.action_space.n
     # Get the number of state observations
-    state, info = env.reset(seed=42)
+    state, info = env.reset(seed=200)
     terminated = False
 
     state = flatten(state)
     n_observations = len(state)
 
-    policy_net = DQN(n_observations, n_actions).to(device)
+
+    policy_net = DQN(n_observations, n_actions).to(device)  
+    policy_net.load_state_dict(torch.load(PATH, weights_only=True)) # load the model
+    policy_net.train()                           
+
     target_net = DQN(n_observations, n_actions).to(device)
     target_net.load_state_dict(policy_net.state_dict())
 
     optimizer = optim.AdamW(policy_net.parameters(), lr=LR, amsgrad=True)
     memory = ReplayMemory(10000)
-
-
+    
+    
     steps_done = 0
     if torch.cuda.is_available() or torch.backends.mps.is_available():
-        num_episodes = 600
+        num_episodes = 16000
     else:
-        num_episodes = 50
-
+        num_episodes = 10
+    print("num episodes ",num_episodes)
+    start = time.time()
     for i_episode in range(num_episodes):
         # Initialize the environment and get its state
-        state, info = env.reset()
-        env.render()
+        state, info = env.reset(seed=200) #lets train it all on seed 200
+        #env.render() #uncomment render for showing off
         state = flatten(state)
         state = torch.tensor(state, dtype=torch.float32, device=device).unsqueeze(0)
+        score = 0
         for t in count():
             action = select_action(state)
             observation, reward, terminated, truncated, _ = env.step(action.item())
-            env.render()
+            score += reward
+            #env.render()
             
             observation = flatten(observation)
             reward = torch.tensor([reward], device=device)
@@ -247,11 +263,14 @@ if __name__ == "__main__":
             target_net.load_state_dict(target_net_state_dict)
 
             if done:
-                episode_durations.append(t + 1)
-                plot_durations()
+                #episode_durations.append(t + 1)
+                scores.append(score)
+                #plot_durations()
                 break
     env.close()
-    print('Complete')
+    torch.save(policy_net.state_dict(), "DQN-seed200-32000CumEps.pth")
+    end = time.time()
+    print(f'total time {end - start} total episodes {num_episodes}')
     plot_durations(show_result=True)
     plt.ioff()
     plt.show()

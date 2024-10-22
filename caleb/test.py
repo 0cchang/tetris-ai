@@ -6,6 +6,7 @@ import gymnasium as gym
 import cv2
 from tetris_gymnasium.envs.tetris import Tetris
 import numpy as np
+'''
 def process_observation_gym(observation):
     active_tetromino_mask = observation['active_tetromino_mask'].flatten()
     board = observation['board'][1:-4, 4:-4].flatten()
@@ -28,3 +29,7 @@ observation, info = env.reset(seed=42)
 
 print(len(process_observation_gym(observation)))
 env.close()
+'''
+print(torch.version.cuda)
+print("cuda:",torch.cuda.is_available())
+
