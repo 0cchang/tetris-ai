@@ -28,7 +28,7 @@ n_observations = len(state)
 
 # Load the trained model
 policy_net = DQN(n_observations, n_actions).to(device)
-policy_net.load_state_dict(torch.load("DQN-seed200-32000CumEps.pth"))
+policy_net.load_state_dict(torch.load("DQN-seed200-64000CumEps.pth"))
 policy_net.eval()
 
 

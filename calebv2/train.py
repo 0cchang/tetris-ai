@@ -75,7 +75,12 @@ EPS_DECAY = 1000
 TAU = 0.005
 LR = 1e-4
 
-PATH = "DQN-seed200-16000CumEps.pth"
+PATH = "DQN-seed200-32000CumEps.pth"
+
+CYCLES = 32000
+
+PATH_OUT = "DQN-seed200-64000CumEps.pth"
+
 
 
 
@@ -218,7 +223,7 @@ if __name__ == "__main__":
     
     steps_done = 0
     if torch.cuda.is_available() or torch.backends.mps.is_available():
-        num_episodes = 16000
+        num_episodes = CYCLES
     else:
         num_episodes = 10
     print("num episodes ",num_episodes)
@@ -268,7 +273,8 @@ if __name__ == "__main__":
                 #plot_durations()
                 break
     env.close()
-    torch.save(policy_net.state_dict(), "DQN-seed200-32000CumEps.pth")
+    torch.save(policy_net.state_dict(), PATH_OUT)
+    
     end = time.time()
     print(f'total time {end - start} total episodes {num_episodes}')
     plot_durations(show_result=True)
