@@ -7,7 +7,7 @@ import numpy
 from tetris_gymnasium.envs import Tetris
 import gymnasium as gym
 
-from training_model import *
+from dqn import *
 from replay_buffer import *
 
 # Create necessary constants

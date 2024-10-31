@@ -23,3 +23,19 @@ class DQN(nn.Module):
         x = torch.relu(self.input_layer(x))
         x = torch.relu(self.hidden_layer1(x))
         return self.output_layer(x)  # Output Q-values
+    
+if __name__ == "__main__":
+    input_dim = 216
+    output_dim = 8
+    
+    net = DQN(input_dim, output_dim)
+
+    state = torch.randn(5,input_dim)
+    print(state)
+
+    q_values = net(state)
+    print(q_values)
+
+    random_action = torch.argmax(q_values).item()
+    print(random_action)
+    
