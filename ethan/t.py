@@ -1,14 +1,26 @@
+import torch
+import numpy as np
 import gymnasium as gym
 
 from tetris_gymnasium.envs.tetris import Tetris
 
-if __name__ == "__main__":
-    env = gym.make("tetris_gymnasium/Tetris", render_mode="ansi")
-    env.reset(seed=42)
+env = gym.make("tetris_gymnasium/Tetris", render_mode="human")
+state,_ = env.reset()
 
-    terminated = False
-    while not terminated:
-        print(env.render() + "\n")
-        action = env.action_space.sample()
-        observation, reward, terminated, truncated, info = env.step(action)
-    print("Game Over!")
+action = env.action_space.sample()
+observation, reward, terminated, truncated, info = env.step(action)
+
+t = torch.tensor(1.02)
+print(t)
+print(t.item())
+
+
+EPSILON = 2
+
+def change():
+    EPSILON = 4
+
+
+change()
+
+print(EPSILON)
